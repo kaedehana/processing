@@ -19,18 +19,26 @@ float lasty;
 boolean bexist = false;
 int score;
 int mcnt;
+int life;
+int gcnt = 0; //how many games
+int[] ranking = new int[5];
+boolean flag;
+int gameTime;
 void setup(){
   size(400,500);
   noStroke();
   colorMode(HSB,100,100,100);
   gameInit();
+  for(int i=0;i<5;i++){
+    ranking[i] = 0;
+  }
 }
 
 void draw(){
   background(0);
   switch(gseq){
     case 0:
-      select();
+      selectDifficulty();
       break;
     case 1:
       gameTitle();
@@ -38,13 +46,16 @@ void draw(){
     case 2:
       gamePlay();
       break;
-    default:
+    case 3:
       gameOver();
+      break;
+    case 4:
+      rankingDisp();
       break;
   }
 }
 
-void select(){
+void selectDifficulty(){
   textSize(20);
   fill(0,100,100);
   mcnt++;
@@ -63,9 +74,12 @@ void keyPressed(){
     gseq = 1;
   }
   if(key=='b'){
-    spdx = 10;
-    spdy = 10;
+    spdx = 7;
+    spdy = 7;
     gseq = 1;
+  }
+  if(key=='c'){
+    gseq = 4;
   }
 }
 void gameInit(){
@@ -81,6 +95,9 @@ void gameInit(){
   bexist = false;
   score = 0;
   mcnt = 0;
+  life = 3;
+  flag = true;
+  gameTime = 15;
 }
 
 void gameTitle(){
@@ -88,6 +105,7 @@ void gameTitle(){
   playerDisp();
   blockDisp();
   scoreDisp();
+  lifeDisp();
   mcnt++;
   if(mcnt%40 < 30){
     textSize(20);
@@ -103,12 +121,14 @@ void gamePlay(){
   ballMove();
   ballDisp();
   scoreDisp();
+  lifeDisp();
 }
 
 void gameOver(){
   playerDisp();
   blockDisp();
   scoreDisp();
+  lifeDisp();
   textSize(20);
   fill(1,100,100);
   text("GAME OVER",60,300);
@@ -116,8 +136,31 @@ void gameOver(){
   if(mcnt%40 < 30){
     textSize(20);
     fill(20,100,100);
-    text("Click to retry!",140,360);
+    text("Click to retry",140,360);
+    text("'c' see ranking",140,390);
   }
+}
+
+void rankingDisp(){
+  if(flag){
+    ranking[gcnt] = score;
+    gcnt++;
+    ranking = sort(ranking);
+    ranking = reverse(ranking);
+    flag = false;
+  }
+  int yyy=100,Size=30;
+  //for(int i=0;i<6;i++)println(ranking[i]);
+  for(int i=0;i<5;i++){
+    int num = i+1;
+    fill(i*15,100,100);
+    textSize(Size);
+    Size-=5;
+    text("No."+num+":"+ranking[i],140,yyy);
+    yyy += 25;
+  }
+  textSize(30);
+  text("Click to retry",140,360);
 }
 
 void playerDisp(){
@@ -144,8 +187,13 @@ void ballMove(){
   lasty = by;
   bx += spdx;
   by += spdy;
-  if(by > height){
-    gseq = 3;
+  if(by > height){ //下に沈んだ時
+    life--;
+    if(life == 0){
+      gseq = 3;
+    }
+    bx = 100;
+    by = 250;
   }
   if(by < 0){
     spdy *= -1;
@@ -214,11 +262,16 @@ void scoreDisp(){
   text("score:"+score,10,25);
 }
 
+void lifeDisp(){
+  textSize(24);
+  fill(255,255,255);
+  text("life:"+life,width-80,25);
+}
 void mousePressed(){
   if(gseq == 1){
     gseq = 2;
   }
-  if(gseq == 3){
+  if(gseq == 3 || gseq == 4){
     gameInit();
   }
 }
